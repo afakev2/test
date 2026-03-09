@@ -1,4 +1,8 @@
 const express = require('express');
+
+// Force undici version
+process.env.NODE_NO_WARNINGS = '1';
+
 const { Client } = require('discord.js-selfbot-v13');
 const { joinVoiceChannel, createAudioPlayer } = require('@discordjs/voice');
 const app = express();
