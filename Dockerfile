@@ -1,4 +1,4 @@
-FROM node:16-bullseye-slim
+FROM node:16.20.0-bullseye-slim
 
 WORKDIR /app
 
@@ -12,10 +12,11 @@ RUN apt-get update && apt-get install -y \
 
 # نسخ ملفات المشروع
 COPY package*.json ./
+COPY .npmrc ./
 
-# تنظيف الكاش وتثبيت الحزم
+# تنظيف الكاش وتثبيت الحزم مع إصلاح التبعيات
 RUN npm cache clean --force && \
-    npm install --legacy-peer-deps
+    npm install --legacy-peer-deps --force
 
 COPY . .
 
