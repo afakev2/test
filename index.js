@@ -1,76 +1,120 @@
 const express = require('express');
+
+// Force older Node.js compatibility
+process.env.NODE_OPTIONS = '--no-warnings';
+
+// Patch global objects if missing
+if (typeof global.ReadableStream === 'undefined') {
+    global.ReadableStream = class ReadableStream {};
+}
+if (typeof global.File === 'undefined') {
+    global.File = class File {};
+}
+
 const { Client } = require('discord.js-selfbot-v13');
 const { joinVoiceChannel, createAudioPlayer } = require('@discordjs/voice');
 const app = express();
 
+// التحقق من وجود التوكن
 const token = process.env.DISCORD_TOKEN;
 if (!token) {
-    console.error('❌ DISCORD_TOKEN is required');
+    console.error('❌ يجب تعيين DISCORD_TOKEN في المتغيرات البيئية');
     process.exit(1);
 }
 
+// إنشاء عميل السيلف بوت مع إعدادات مبسطة
 const client = new Client({
-    checkUpdate: false
+    checkUpdate: false,
+    ws: {
+        properties: {
+            $browser: "Discord iOS"
+        }
+    }
 });
 
+// تخزين حالة الاتصال الصوتي
 let voiceConnection = null;
 let audioPlayer = createAudioPlayer();
+let currentVoiceChannel = null;
+let currentGuild = null;
 
+// إعداد Express
 app.use(express.json());
 app.use(express.static('public'));
 
-// Health check
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', bot: client.user ? 'connected' : 'disconnected' });
-});
+// ============ API ENDPOINTS ============
 
-// User info
+// جلب معلومات المستخدم
 app.get('/api/user', (req, res) => {
-    if (!client.user) {
-        return res.status(503).json({ error: 'Bot not ready' });
+    if (!client || !client.user) {
+        return res.status(503).json({ error: 'البوت ليس جاهزاً بعد' });
     }
-    res.json({
-        id: client.user.id,
-        username: client.user.username,
-        discriminator: client.user.discriminator,
-        avatar: client.user.displayAvatarURL({ format: 'png', size: 256 })
-    });
+    
+    try {
+        res.json({
+            id: client.user.id,
+            username: client.user.username,
+            discriminator: client.user.discriminator,
+            avatar: client.user.displayAvatarURL({ format: 'png', dynamic: true, size: 256 }),
+            status: client.user.presence?.status || 'offline'
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'خطأ في جلب معلومات المستخدم' });
+    }
 });
 
-// Guilds list
+// جلب قائمة الخوادم
 app.get('/api/guilds', (req, res) => {
-    const guilds = client.guilds.cache.map(guild => ({
-        id: guild.id,
-        name: guild.name,
-        icon: guild.iconURL({ format: 'png', size: 128 }),
-        memberCount: guild.memberCount,
-        channels: guild.channels.cache
-            .filter(ch => ch.type === 'GUILD_VOICE' || ch.type === 'GUILD_TEXT')
-            .map(ch => ({
-                id: ch.id,
-                name: ch.name,
-                type: ch.type === 'GUILD_VOICE' ? 'voice' : 'text'
-            }))
-    }));
-    res.json(guilds);
+    try {
+        if (!client.guilds) {
+            return res.json([]);
+        }
+        
+        const guilds = client.guilds.cache.map(guild => ({
+            id: guild.id,
+            name: guild.name,
+            icon: guild.iconURL({ format: 'png', dynamic: true, size: 128 }),
+            memberCount: guild.memberCount,
+            channels: guild.channels.cache
+                .filter(ch => ch.type === 'GUILD_VOICE' || ch.type === 'GUILD_TEXT')
+                .map(ch => ({
+                    id: ch.id,
+                    name: ch.name,
+                    type: ch.type === 'GUILD_VOICE' ? 'voice' : 'text'
+                }))
+        }));
+        
+        res.json(guilds);
+    } catch (error) {
+        console.error('خطأ في جلب الخوادم:', error);
+        res.status(500).json({ error: 'فشل جلب الخوادم' });
+    }
 });
 
-// Join voice
+// الدخول إلى قناة صوتية
 app.post('/api/voice/join', async (req, res) => {
     const { guildId, channelId } = req.body;
     
     try {
         const guild = client.guilds.cache.get(guildId);
-        const channel = guild?.channels.cache.get(channelId);
+        if (!guild) {
+            return res.status(404).json({ error: 'الخادم غير موجود' });
+        }
         
+        const channel = guild.channels.cache.get(channelId);
         if (!channel || channel.type !== 'GUILD_VOICE') {
-            return res.status(400).json({ error: 'Invalid voice channel' });
+            return res.status(400).json({ error: 'القناة غير موجودة أو ليست قناة صوتية' });
         }
         
+        // إذا كان متصل بقناة أخرى، افصل أولاً
         if (voiceConnection) {
-            voiceConnection.destroy();
+            try {
+                voiceConnection.destroy();
+            } catch (e) {}
+            voiceConnection = null;
         }
         
+        // الاتصال بالقناة الصوتية
         voiceConnection = joinVoiceChannel({
             channelId: channel.id,
             guildId: guild.id,
@@ -79,52 +123,62 @@ app.post('/api/voice/join', async (req, res) => {
             selfMute: false
         });
         
-        voiceConnection.subscribe(audioPlayer);
+        currentVoiceChannel = channel.id;
+        currentGuild = guild.id;
         
-        res.json({ success: true, message: `✅ Connected to ${channel.name}` });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Leave voice
-app.post('/api/voice/leave', (req, res) => {
-    if (voiceConnection) {
-        voiceConnection.destroy();
-        voiceConnection = null;
-        res.json({ success: true, message: '✅ Left voice channel' });
-    } else {
-        res.json({ success: true, message: '⚠️ Not in a voice channel' });
-    }
-});
-
-// Voice status
-app.get('/api/voice/status', (req, res) => {
-    res.json({ connected: voiceConnection !== null });
-});
-
-// Send message
-app.post('/api/message/send', async (req, res) => {
-    const { channelId, message } = req.body;
-    
-    try {
-        const channel = client.channels.cache.get(channelId);
-        if (!channel) {
-            return res.status(404).json({ error: 'Channel not found' });
+        // تشغيل الصوت
+        if (voiceConnection) {
+            voiceConnection.subscribe(audioPlayer);
         }
         
-        await channel.send(message);
-        res.json({ success: true, message: '✅ Message sent' });
+        res.json({ 
+            success: true, 
+            message: `✅ تم الاتصال بـ ${channel.name}`,
+            channel: channel.name,
+            guild: guild.name
+        });
+        
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('خطأ في الاتصال الصوتي:', error);
+        res.status(500).json({ error: 'فشل الاتصال بالقناة الصوتية' });
     }
 });
 
-// Update status
+// مغادرة القناة الصوتية
+app.post('/api/voice/leave', (req, res) => {
+    try {
+        if (voiceConnection) {
+            voiceConnection.destroy();
+            voiceConnection = null;
+            currentVoiceChannel = null;
+            currentGuild = null;
+            res.json({ success: true, message: '✅ تم مغادرة القناة الصوتية' });
+        } else {
+            res.json({ success: true, message: '⚠️ لست متصلاً بأي قناة صوتية' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'فشل مغادرة القناة الصوتية' });
+    }
+});
+
+// الحصول على حالة الصوت
+app.get('/api/voice/status', (req, res) => {
+    res.json({
+        connected: voiceConnection !== null,
+        guildId: currentGuild,
+        channelId: currentVoiceChannel
+    });
+});
+
+// تحديث الحالة
 app.post('/api/status', async (req, res) => {
     const { status, activity, activityType } = req.body;
     
     try {
+        if (!client.user) {
+            return res.status(503).json({ error: 'البوت ليس جاهزاً' });
+        }
+        
         await client.user.setPresence({
             status: status || 'online',
             activities: activity ? [{
@@ -132,22 +186,68 @@ app.post('/api/status', async (req, res) => {
                 type: parseInt(activityType) || 0
             }] : []
         });
-        res.json({ success: true, message: '✅ Status updated' });
+        
+        res.json({ success: true, message: '✅ تم تحديث الحالة' });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('خطأ في تحديث الحالة:', error);
+        res.status(500).json({ error: 'فشل تحديث الحالة' });
     }
 });
 
-client.on('ready', () => {
-    console.log(`✅ Logged in as ${client.user.tag}`);
+// إرسال رسالة
+app.post('/api/message/send', async (req, res) => {
+    const { channelId, message } = req.body;
+    
+    try {
+        const channel = client.channels.cache.get(channelId);
+        if (!channel) {
+            return res.status(404).json({ error: 'القناة غير موجودة' });
+        }
+        
+        await channel.send(message);
+        res.json({ success: true, message: '✅ تم إرسال الرسالة' });
+    } catch (error) {
+        console.error('خطأ في إرسال الرسالة:', error);
+        res.status(500).json({ error: 'فشل إرسال الرسالة' });
+    }
 });
 
+// فحص الصحة
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'ok', 
+        bot: client && client.user ? 'connected' : 'disconnected',
+        uptime: process.uptime()
+    });
+});
+
+// ============ تشغيل البوت ============
+
+client.on('ready', async () => {
+    console.log('✅ تم تسجيل الدخول بنجاح');
+    console.log(`👤 المستخدم: ${client.user.tag}`);
+    console.log(`🆔 المعرف: ${client.user.id}`);
+    console.log(`🌐 عدد الخوادم: ${client.guilds.cache.size}`);
+});
+
+client.on('error', (error) => {
+    console.error('❌ خطأ في البوت:', error);
+});
+
+// معالجة الأخطاء غير المتوقعة
+process.on('unhandledRejection', (error) => {
+    console.error('❌ خطأ غير معالج:', error);
+});
+
+// تسجيل الدخول
+console.log('🔄 جاري تسجيل الدخول...');
 client.login(token).catch(err => {
-    console.error('❌ Login failed:', err.message);
+    console.error('❌ فشل تسجيل الدخول:', err.message);
     process.exit(1);
 });
 
+// تشغيل الخادم
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Dashboard running on port ${PORT}`);
+    console.log(`🚀 لوحة التحكم تعمل على المنفذ ${PORT}`);
 });
