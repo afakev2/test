@@ -1,6 +1,6 @@
 const express = require('express');
 const { Client } = require('discord.js-selfbot-v13');
-const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus } = require('@discordjs/voice');
+const { joinVoiceChannel, createAudioPlayer, AudioPlayerStatus } = require('@discordjs/voice');
 const path = require('path');
 const app = express();
 
@@ -11,10 +11,16 @@ if (!token) {
     process.exit(1);
 }
 
-// إنشاء عميل السيلف بوت
+// إنشاء عميل السيلف بوت مع إعدادات متوافقة
 const client = new Client({
     checkUpdate: false,
-    ws: { properties: { browser: "Discord iOS" } } // تقليد تطبيق الهاتف
+    ws: {
+        properties: {
+            $browser: "Discord iOS",
+            $os: "iOS",
+            $device: "iPhone"
+        }
+    }
 });
 
 // تخزين حالة الاتصال الصوتي
@@ -46,21 +52,26 @@ app.get('/api/user', (req, res) => {
 
 // جلب قائمة الخوادم
 app.get('/api/guilds', (req, res) => {
-    const guilds = client.guilds.cache.map(guild => ({
-        id: guild.id,
-        name: guild.name,
-        icon: guild.iconURL({ format: 'png', dynamic: true, size: 128 }),
-        memberCount: guild.memberCount,
-        channels: guild.channels.cache
-            .filter(ch => ch.type === 'GUILD_VOICE' || ch.type === 'GUILD_TEXT')
-            .map(ch => ({
-                id: ch.id,
-                name: ch.name,
-                type: ch.type === 'GUILD_VOICE' ? 'voice' : 'text'
-            }))
-    }));
-    
-    res.json(guilds);
+    try {
+        const guilds = client.guilds.cache.map(guild => ({
+            id: guild.id,
+            name: guild.name,
+            icon: guild.iconURL({ format: 'png', dynamic: true, size: 128 }),
+            memberCount: guild.memberCount,
+            channels: guild.channels.cache
+                .filter(ch => ch.type === 'GUILD_VOICE' || ch.type === 'GUILD_TEXT')
+                .map(ch => ({
+                    id: ch.id,
+                    name: ch.name,
+                    type: ch.type === 'GUILD_VOICE' ? 'voice' : 'text'
+                }))
+        }));
+        
+        res.json(guilds);
+    } catch (error) {
+        console.error('خطأ في جلب الخوادم:', error);
+        res.status(500).json({ error: 'فشل جلب الخوادم' });
+    }
 });
 
 // الدخول إلى قناة صوتية
@@ -81,6 +92,7 @@ app.post('/api/voice/join', async (req, res) => {
         // إذا كان متصل بقناة أخرى، افصل أولاً
         if (voiceConnection) {
             voiceConnection.destroy();
+            voiceConnection = null;
         }
         
         // الاتصال بالقناة الصوتية
@@ -89,7 +101,8 @@ app.post('/api/voice/join', async (req, res) => {
             guildId: guild.id,
             adapterCreator: guild.voiceAdapterCreator,
             selfDeaf: false,
-            selfMute: false
+            selfMute: false,
+            group: client.user.id
         });
         
         currentVoiceChannel = channel.id;
@@ -107,20 +120,24 @@ app.post('/api/voice/join', async (req, res) => {
         
     } catch (error) {
         console.error('خطأ في الاتصال الصوتي:', error);
-        res.status(500).json({ error: 'فشل الاتصال بالقناة الصوتية' });
+        res.status(500).json({ error: 'فشل الاتصال بالقناة الصوتية: ' + error.message });
     }
 });
 
 // مغادرة القناة الصوتية
 app.post('/api/voice/leave', (req, res) => {
-    if (voiceConnection) {
-        voiceConnection.destroy();
-        voiceConnection = null;
-        currentVoiceChannel = null;
-        currentGuild = null;
-        res.json({ success: true, message: '✅ تم مغادرة القناة الصوتية' });
-    } else {
-        res.json({ success: true, message: '⚠️ لست متصلاً بأي قناة صوتية' });
+    try {
+        if (voiceConnection) {
+            voiceConnection.destroy();
+            voiceConnection = null;
+            currentVoiceChannel = null;
+            currentGuild = null;
+            res.json({ success: true, message: '✅ تم مغادرة القناة الصوتية' });
+        } else {
+            res.json({ success: true, message: '⚠️ لست متصلاً بأي قناة صوتية' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'فشل مغادرة القناة الصوتية' });
     }
 });
 
@@ -138,23 +155,23 @@ app.post('/api/status', async (req, res) => {
     const { status, activity, activityType } = req.body;
     
     try {
-        let discordStatus = status || 'online';
         let presenceData = {};
         
         if (activity) {
             presenceData.activities = [{
                 name: activity,
-                type: activityType ? parseInt(activityType) : 0 // 0 = Playing, 1 = Streaming, 2 = Listening, 3 = Watching
+                type: parseInt(activityType) || 0
             }];
         }
         
         await client.user.setPresence({
-            status: discordStatus,
+            status: status || 'online',
             activities: presenceData.activities || []
         });
         
         res.json({ success: true, message: '✅ تم تحديث الحالة' });
     } catch (error) {
+        console.error('خطأ في تحديث الحالة:', error);
         res.status(500).json({ error: 'فشل تحديث الحالة' });
     }
 });
@@ -172,15 +189,26 @@ app.post('/api/message/send', async (req, res) => {
         await channel.send(message);
         res.json({ success: true, message: '✅ تم إرسال الرسالة' });
     } catch (error) {
+        console.error('خطأ في إرسال الرسالة:', error);
         res.status(500).json({ error: 'فشل إرسال الرسالة' });
     }
+});
+
+// فحص الصحة
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'ok', 
+        bot: client.user ? 'connected' : 'disconnected',
+        timestamp: new Date().toISOString()
+    });
 });
 
 // ============ تشغيل البوت ============
 
 client.on('ready', async () => {
-    console.log(`✅ تم تسجيل الدخول كـ ${client.user.tag}`);
-    console.log(`🆔 معرف المستخدم: ${client.user.id}`);
+    console.log('✅ تم تسجيل الدخول بنجاح');
+    console.log(`👤 المستخدم: ${client.user.tag}`);
+    console.log(`🆔 المعرف: ${client.user.id}`);
     console.log(`🌐 عدد الخوادم: ${client.guilds.cache.size}`);
 });
 
@@ -188,7 +216,13 @@ client.on('error', (error) => {
     console.error('❌ خطأ في البوت:', error);
 });
 
+// معالجة الأخطاء غير المتوقعة
+process.on('unhandledRejection', (error) => {
+    console.error('❌ خطأ غير معالج:', error);
+});
+
 // تسجيل الدخول
+console.log('🔄 جاري تسجيل الدخول...');
 client.login(token).catch(err => {
     console.error('❌ فشل تسجيل الدخول:', err.message);
     process.exit(1);
@@ -196,6 +230,6 @@ client.login(token).catch(err => {
 
 // تشغيل الخادم
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 لوحة التحكم تعمل على المنفذ ${PORT}`);
 });
