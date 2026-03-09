@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        /* نفس التنسيقات السابقة */
         * {
             margin: 0;
             padding: 0;
@@ -36,14 +37,13 @@
             overflow: hidden;
         }
 
-        /* تخطيط مثل ديسكورد */
         .app {
             display: flex;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* شريط الخوادم الجانبي */
+        /* شريط الخوادم */
         .guilds-bar {
             width: 72px;
             background: var(--bg-tertiary);
@@ -130,10 +130,6 @@
             cursor: pointer;
         }
 
-        .channels-header:hover {
-            background: var(--bg-tertiary);
-        }
-
         .channels-list {
             flex: 1;
             overflow-y: auto;
@@ -154,10 +150,6 @@
             align-items: center;
             justify-content: space-between;
             cursor: pointer;
-        }
-
-        .category-header:hover {
-            color: var(--text-primary);
         }
 
         .channel-item {
@@ -191,7 +183,7 @@
             color: var(--green);
         }
 
-        /* منطقة الدردشة الرئيسية */
+        /* منطقة الدردشة */
         .chat-area {
             flex: 1;
             display: flex;
@@ -405,7 +397,6 @@
             color: var(--text-muted);
         }
 
-        /* أقسام التحكم */
         .control-section {
             padding: 16px;
             border-bottom: 1px solid var(--border);
@@ -422,32 +413,46 @@
             justify-content: space-between;
         }
 
-        .voice-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+        .voice-users {
+            margin-top: 12px;
         }
 
-        .voice-control-item {
+        .voice-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .voice-user:hover {
             background: var(--bg-tertiary);
-            border-radius: 8px;
-            padding: 12px;
+        }
+
+        .voice-user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .voice-user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .voice-user-name {
+            flex: 1;
+        }
+
+        .voice-user-icons {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            gap: 4px;
+            color: var(--text-muted);
         }
 
-        .voice-control-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .voice-control-info i {
-            color: var(--green);
-        }
-
-        /* مفاتيح التشغيل */
         .switch {
             position: relative;
             display: inline-block;
@@ -493,52 +498,6 @@
             transform: translateX(20px);
         }
 
-        /* قائمة المستخدمين في الصوت */
-        .voice-users {
-            margin-top: 12px;
-        }
-
-        .voice-user {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-
-        .voice-user:hover {
-            background: var(--bg-tertiary);
-        }
-
-        .voice-user-avatar {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            overflow: hidden;
-        }
-
-        .voice-user-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .voice-user-name {
-            flex: 1;
-        }
-
-        .voice-user-icons {
-            display: flex;
-            gap: 4px;
-            color: var(--text-muted);
-        }
-
-        .voice-user-icons i.speaking {
-            color: var(--green);
-        }
-
-        /* التحميل */
         .loading {
             display: flex;
             align-items: center;
@@ -552,19 +511,35 @@
             animation: spin 1s linear infinite;
         }
 
-        /* رسالة الخطأ */
         .error-message {
             color: var(--red);
             text-align: center;
             padding: 20px;
+            background: rgba(242, 63, 66, 0.1);
+            border-radius: 8px;
+            margin: 10px;
         }
 
-        /* لا توجد رسائل */
         .no-messages {
             color: var(--text-muted);
             text-align: center;
             padding: 40px;
             font-style: italic;
+        }
+
+        .retry-button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .retry-button:hover {
+            background: var(--accent-hover);
         }
 
         @keyframes spin {
@@ -577,7 +552,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* إشعارات */
         .notification {
             position: fixed;
             top: 20px;
@@ -600,12 +574,15 @@
     <div class="app">
         <!-- شريط الخوادم -->
         <div class="guilds-bar" id="guildsBar">
-            <div class="guild-icon" onclick="window.location.reload()">
+            <div class="guild-icon" onclick="window.location.reload()" title="تحديث">
                 <i class="fas fa-home"></i>
             </div>
             <div class="guild-separator"></div>
-            <div class="loading" id="guildsLoading">
-                <i class="fas fa-spinner"></i>
+            <div id="guildsContainer">
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <span>جاري تحميل الخوادم...</span>
+                </div>
             </div>
         </div>
 
@@ -633,7 +610,6 @@
                     <i class="fas fa-phone-alt" style="cursor: pointer;" title="بدء مكالمة" onclick="startVoiceCall()"></i>
                     <i class="fas fa-user-plus" style="cursor: pointer;" title="دعوة"></i>
                     <i class="fas fa-search" style="cursor: pointer;" title="بحث"></i>
-                    <i class="fas fa-inbox" style="cursor: pointer;" title="الوارد"></i>
                 </div>
             </div>
 
@@ -647,8 +623,6 @@
                 <div class="chat-input-wrapper">
                     <input type="text" class="chat-input" id="messageInput" placeholder="اكتب رسالة...">
                     <div class="chat-input-actions">
-                        <i class="fas fa-paperclip" title="إرفاق ملف" onclick="attachFile()"></i>
-                        <i class="fas fa-smile" title="إضافة إيموجي" onclick="openEmojiPicker()"></i>
                         <i class="fas fa-paper-plane" id="sendMessageBtn" title="إرسال"></i>
                     </div>
                 </div>
@@ -670,7 +644,6 @@
                 <div style="display: flex; gap: 8px;">
                     <i class="fas fa-microphone" style="cursor: pointer;" title="كتم الميكروفون" id="micToggle" onclick="toggleMic()"></i>
                     <i class="fas fa-headphones" style="cursor: pointer;" title="كتم السماعة" id="deafToggle" onclick="toggleDeaf()"></i>
-                    <i class="fas fa-cog" style="cursor: pointer;" title="الإعدادات" onclick="openSettings()"></i>
                 </div>
             </div>
 
@@ -680,9 +653,7 @@
                     <span>المتصلون في الصوت</span>
                     <i class="fas fa-volume-up"></i>
                 </div>
-                <div class="voice-users" id="voiceUsers">
-                    <!-- المستخدمين سيظهرون هنا -->
-                </div>
+                <div class="voice-users" id="voiceUsers"></div>
             </div>
 
             <!-- التحكم في الصوت -->
@@ -697,10 +668,10 @@
                 </select>
                 
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn" style="flex: 1; padding: 8px; background: var(--green); color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="joinVoiceChannel()">
+                    <button class="retry-button" style="flex: 1;" onclick="joinVoiceChannel()">
                         <i class="fas fa-sign-in-alt"></i> دخول
                     </button>
-                    <button class="btn" style="flex: 1; padding: 8px; background: var(--red); color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="leaveVoiceChannel()">
+                    <button class="retry-button" style="flex: 1; background: var(--red);" onclick="leaveVoiceChannel()">
                         <i class="fas fa-sign-out-alt"></i> خروج
                     </button>
                 </div>
@@ -719,16 +690,8 @@
                         <div style="font-weight: 700;" id="statGuilds">0</div>
                     </div>
                     <div style="background: var(--bg-tertiary); padding: 8px; border-radius: 4px; text-align: center;">
-                        <div style="font-size: 12px; color: var(--text-muted);">القنوات</div>
-                        <div style="font-weight: 700;" id="statChannels">0</div>
-                    </div>
-                    <div style="background: var(--bg-tertiary); padding: 8px; border-radius: 4px; text-align: center;">
                         <div style="font-size: 12px; color: var(--text-muted);">الأعضاء</div>
                         <div style="font-weight: 700;" id="statMembers">0</div>
-                    </div>
-                    <div style="background: var(--bg-tertiary); padding: 8px; border-radius: 4px; text-align: center;">
-                        <div style="font-size: 12px; color: var(--text-muted);">الرسائل</div>
-                        <div style="font-weight: 700;" id="statMessages">0</div>
                     </div>
                 </div>
             </div>
@@ -748,26 +711,15 @@
         let isMicMuted = false;
         let isDeafMuted = false;
         let refreshInterval = null;
+        let retryCount = 0;
+        const MAX_RETRIES = 3;
 
         // ============ التهيئة ============
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('✅ الصفحة تحمست بنجاح');
             loadUserInfo();
             loadGuilds();
-            startAutoRefresh();
         });
-
-        // ============ تحديث تلقائي ============
-        function startAutoRefresh() {
-            if (refreshInterval) clearInterval(refreshInterval);
-            refreshInterval = setInterval(() => {
-                if (currentChannelId) {
-                    loadMessages(currentChannelId);
-                }
-                if (currentGuildId) {
-                    loadVoiceUsers();
-                }
-            }, 10000);
-        }
 
         // ============ الإشعارات ============
         function showNotification(message, type = 'success') {
@@ -793,16 +745,23 @@
         // ============ تحميل معلومات المستخدم ============
         async function loadUserInfo() {
             try {
+                console.log('🔄 جاري تحميل معلومات المستخدم...');
                 const response = await fetch('/api/user');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const user = await response.json();
+                console.log('✅ معلومات المستخدم:', user);
                 
                 if (user.error) {
                     showNotification(user.error, 'error');
                     return;
                 }
                 
-                document.getElementById('userName').textContent = user.username;
-                document.getElementById('userTag').textContent = '#' + user.discriminator;
+                document.getElementById('userName').textContent = user.username || 'Unknown';
+                document.getElementById('userTag').textContent = '#' + (user.discriminator || '0000');
                 
                 const avatarImg = document.querySelector('#userAvatar img');
                 avatarImg.src = user.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png';
@@ -811,7 +770,7 @@
                 statusDot.className = `user-status ${user.status || 'online'}`;
                 
             } catch (error) {
-                console.error('خطأ في تحميل معلومات المستخدم:', error);
+                console.error('❌ خطأ في تحميل معلومات المستخدم:', error);
                 showNotification('فشل تحميل معلومات المستخدم', 'error');
             }
         }
@@ -819,54 +778,135 @@
         // ============ تحميل الخوادم ============
         async function loadGuilds() {
             try {
-                const response = await fetch('/api/guilds');
-                guildsData = await response.json();
+                console.log('🔄 جاري تحميل الخوادم...');
                 
+                const response = await fetch('/api/guilds');
+                console.log('📥 استجابة الخادم:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ البيانات المستلمة:', data);
+                
+                // التحقق من أن البيانات مصفوفة
+                if (!Array.isArray(data)) {
+                    console.error('❌ البيانات ليست مصفوفة:', data);
+                    throw new Error('البيانات المستلمة غير صحيحة');
+                }
+                
+                guildsData = data;
+                
+                if (guildsData.length === 0) {
+                    showNotification('لا توجد خوادم متاحة', 'error');
+                    displayNoGuilds();
+                    return;
+                }
+                
+                // تحديث الإحصائيات
                 document.getElementById('statGuilds').textContent = guildsData.length;
                 
                 let totalMembers = 0;
-                let totalChannels = 0;
                 guildsData.forEach(g => {
                     totalMembers += g.memberCount || 0;
-                    totalChannels += g.channels?.length || 0;
                 });
                 document.getElementById('statMembers').textContent = totalMembers.toLocaleString();
-                document.getElementById('statChannels').textContent = totalChannels;
                 
                 // عرض الخوادم
                 displayGuilds(guildsData);
                 
+                // إعادة تعيين عدد المحاولات
+                retryCount = 0;
+                
             } catch (error) {
-                console.error('خطأ في تحميل الخوادم:', error);
-                showNotification('فشل تحميل الخوادم', 'error');
+                console.error('❌ خطأ في تحميل الخوادم:', error);
+                
+                retryCount++;
+                
+                if (retryCount <= MAX_RETRIES) {
+                    console.log(`🔄 محاولة إعادة التحميل ${retryCount}/${MAX_RETRIES}...`);
+                    showNotification(`محاولة إعادة التحميل ${retryCount}/${MAX_RETRIES}...`, 'error');
+                    
+                    setTimeout(() => {
+                        loadGuilds();
+                    }, 2000 * retryCount); // زيادة وقت الانتظار مع كل محاولة
+                } else {
+                    displayError('فشل تحميل الخوادم بعد عدة محاولات');
+                }
             }
+        }
+
+        // ============ عرض رسالة خطأ ============
+        function displayError(message) {
+            const container = document.getElementById('guildsContainer');
+            container.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>${message}</p>
+                    <button class="retry-button" onclick="loadGuilds()">
+                        <i class="fas fa-redo"></i> إعادة المحاولة
+                    </button>
+                </div>
+            `;
+        }
+
+        // ============ عرض رسالة لا توجد خوادم ============
+        function displayNoGuilds() {
+            const container = document.getElementById('guildsContainer');
+            container.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-server"></i>
+                    <p>لا توجد خوادم متاحة</p>
+                    <p style="font-size: 12px; margin-top: 10px;">تأكد من وجود حسابك في خوادم ديسكورد</p>
+                </div>
+            `;
         }
 
         // ============ عرض الخوادم ============
         function displayGuilds(guilds) {
-            const guildsBar = document.getElementById('guildsBar');
-            const loading = document.getElementById('guildsLoading');
-            if (loading) loading.remove();
+            const container = document.getElementById('guildsContainer');
+            container.innerHTML = '';
             
-            guilds.forEach(guild => {
+            guilds.forEach((guild, index) => {
+                if (!guild || !guild.id) {
+                    console.warn('⚠️ بيانات خادم غير صحيحة:', guild);
+                    return;
+                }
+                
                 const guildIcon = document.createElement('div');
                 guildIcon.className = 'guild-icon';
                 guildIcon.setAttribute('data-guild-id', guild.id);
-                guildIcon.setAttribute('title', guild.name);
+                guildIcon.setAttribute('title', guild.name || 'غير معروف');
                 
                 if (guild.icon) {
-                    guildIcon.innerHTML = `<img src="${guild.icon}" alt="${guild.name}">`;
+                    guildIcon.innerHTML = `<img src="${guild.icon}" alt="${guild.name || 'Guild'}" onerror="this.onerror=null; this.parentElement.textContent='${(guild.name || '?').charAt(0).toUpperCase()}';">`;
                 } else {
-                    guildIcon.textContent = guild.name.charAt(0).toUpperCase();
+                    guildIcon.textContent = (guild.name || '?').charAt(0).toUpperCase();
                 }
                 
                 guildIcon.onclick = () => selectGuild(guild.id);
-                guildsBar.appendChild(guildIcon);
+                container.appendChild(guildIcon);
             });
+            
+            // تحديد أول خادم تلقائياً
+            if (guilds.length > 0 && guilds[0] && guilds[0].id) {
+                setTimeout(() => {
+                    selectGuild(guilds[0].id);
+                }, 500);
+            }
         }
 
         // ============ اختيار خادم ============
         function selectGuild(guildId) {
+            console.log('🔄 اختيار خادم:', guildId);
+            
+            const guild = guildsData.find(g => g && g.id === guildId);
+            if (!guild) {
+                console.error('❌ الخادم غير موجود:', guildId);
+                return;
+            }
+            
             currentGuildId = guildId;
             
             // تحديث الشكل
@@ -883,36 +923,27 @@
             document.getElementById('rightSidebar').style.display = 'flex';
             
             // عرض القنوات
-            displayChannels(guildId);
+            displayChannels(guild);
             
             // تحديث قائمة القنوات الصوتية
-            updateVoiceChannelsSelect(guildId);
+            updateVoiceChannelsSelect(guild);
         }
 
         // ============ عرض القنوات ============
-        function displayChannels(guildId) {
-            const guild = guildsData.find(g => g.id === guildId);
-            if (!guild) return;
+        function displayChannels(guild) {
+            if (!guild || !guild.channels) {
+                console.error('❌ لا توجد قنوات للخادم:', guild);
+                return;
+            }
             
-            document.getElementById('selectedGuildName').textContent = guild.name;
+            document.getElementById('selectedGuildName').textContent = guild.name || 'غير معروف';
             
             const channelsList = document.getElementById('channelsList');
             channelsList.innerHTML = '';
             
             // تقسيم القنوات
-            const categories = new Map();
-            const textChannels = [];
-            const voiceChannels = [];
-            
-            guild.channels.forEach(ch => {
-                if (ch.type === 'category') {
-                    categories.set(ch.id, ch);
-                } else if (ch.type === 'text') {
-                    textChannels.push(ch);
-                } else if (ch.type === 'voice') {
-                    voiceChannels.push(ch);
-                }
-            });
+            const textChannels = guild.channels.filter(ch => ch && ch.type === 'text');
+            const voiceChannels = guild.channels.filter(ch => ch && ch.type === 'voice');
             
             // عرض القنوات النصية
             if (textChannels.length > 0) {
@@ -925,16 +956,15 @@
                     </div>
                 `;
                 
-                textChannels.sort((a, b) => a.position - b.position).forEach(ch => {
+                textChannels.sort((a, b) => (a.position || 0) - (b.position || 0)).forEach(ch => {
                     const channelItem = document.createElement('div');
                     channelItem.className = 'channel-item';
                     channelItem.setAttribute('data-channel-id', ch.id);
-                    channelItem.setAttribute('data-channel-type', 'text');
                     channelItem.innerHTML = `
                         <i class="fas fa-hashtag"></i>
-                        <span>${ch.name}</span>
+                        <span>${ch.name || 'غير معروف'}</span>
                     `;
-                    channelItem.onclick = () => selectChannel(ch.id, ch.name);
+                    channelItem.onclick = (e) => selectChannel(ch.id, ch.name || 'قناة', e);
                     textCategory.appendChild(channelItem);
                 });
                 
@@ -952,17 +982,16 @@
                     </div>
                 `;
                 
-                voiceChannels.sort((a, b) => a.position - b.position).forEach(ch => {
+                voiceChannels.sort((a, b) => (a.position || 0) - (b.position || 0)).forEach(ch => {
                     const channelItem = document.createElement('div');
                     channelItem.className = 'channel-item voice';
                     channelItem.setAttribute('data-channel-id', ch.id);
-                    channelItem.setAttribute('data-channel-type', 'voice');
                     channelItem.innerHTML = `
                         <i class="fas fa-volume-up"></i>
-                        <span>${ch.name}</span>
+                        <span>${ch.name || 'غير معروف'}</span>
                     `;
                     channelItem.onclick = () => {
-                        if (confirm(`هل تريد الاتصال بالقناة الصوتية ${ch.name}؟`)) {
+                        if (confirm(`هل تريد الاتصال بالقناة الصوتية ${ch.name || 'هذه'}؟`)) {
                             joinVoiceChannelById(ch.id);
                         }
                     };
@@ -971,26 +1000,34 @@
                 
                 channelsList.appendChild(voiceCategory);
             }
+            
+            // إذا لم توجد قنوات
+            if (textChannels.length === 0 && voiceChannels.length === 0) {
+                channelsList.innerHTML = '<div class="no-messages">لا توجد قنوات في هذا الخادم</div>';
+            }
         }
 
         // ============ تحديث قائمة القنوات الصوتية ============
-        function updateVoiceChannelsSelect(guildId) {
-            const guild = guildsData.find(g => g.id === guildId);
-            if (!guild) return;
+        function updateVoiceChannelsSelect(guild) {
+            if (!guild || !guild.channels) return;
             
             const select = document.getElementById('voiceChannelSelect');
             select.innerHTML = '<option value="">اختر قناة صوتية</option>';
             
-            guild.channels.filter(ch => ch.type === 'voice').forEach(ch => {
+            const voiceChannels = guild.channels.filter(ch => ch && ch.type === 'voice');
+            
+            voiceChannels.forEach(ch => {
                 const option = document.createElement('option');
                 option.value = ch.id;
-                option.textContent = ch.name;
+                option.textContent = ch.name || 'غير معروف';
                 select.appendChild(option);
             });
         }
 
         // ============ اختيار قناة ============
-        function selectChannel(channelId, channelName) {
+        function selectChannel(channelId, channelName, event) {
+            console.log('🔄 اختيار قناة:', channelId, channelName);
+            
             currentChannelId = channelId;
             document.getElementById('currentChannelName').textContent = channelName;
             
@@ -998,7 +1035,10 @@
             document.querySelectorAll('.channel-item').forEach(item => {
                 item.classList.remove('active');
             });
-            event.currentTarget.classList.add('active');
+            
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
             
             // تحميل الرسائل
             loadMessages(channelId);
@@ -1010,15 +1050,18 @@
                 const chatMessages = document.getElementById('chatMessages');
                 chatMessages.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> جاري تحميل الرسائل...</div>';
                 
+                console.log('🔄 جاري تحميل رسائل القناة:', channelId);
+                
                 const response = await fetch(`/api/channel/${channelId}/messages?limit=50`);
                 
                 if (!response.ok) {
-                    throw new Error('فشل تحميل الرسائل');
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                messages = await response.json();
+                const data = await response.json();
+                console.log(`✅ تم تحميل ${data.length} رسالة`);
                 
-                document.getElementById('statMessages').textContent = messages.length;
+                messages = data;
                 
                 if (messages.length === 0) {
                     chatMessages.innerHTML = '<div class="no-messages">لا توجد رسائل في هذه القناة</div>';
@@ -1028,9 +1071,16 @@
                 displayMessages(messages);
                 
             } catch (error) {
-                console.error('خطأ في تحميل الرسائل:', error);
-                document.getElementById('chatMessages').innerHTML = '<div class="error-message">فشل تحميل الرسائل</div>';
-                showNotification('فشل تحميل الرسائل', 'error');
+                console.error('❌ خطأ في تحميل الرسائل:', error);
+                document.getElementById('chatMessages').innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>فشل تحميل الرسائل</p>
+                        <button class="retry-button" onclick="loadMessages('${channelId}')">
+                            <i class="fas fa-redo"></i> إعادة المحاولة
+                        </button>
+                    </div>
+                `;
             }
         }
 
@@ -1039,34 +1089,40 @@
             const container = document.getElementById('chatMessages');
             container.innerHTML = '';
             
-            messages.reverse().forEach(msg => {
+            if (!messages || messages.length === 0) {
+                container.innerHTML = '<div class="no-messages">لا توجد رسائل</div>';
+                return;
+            }
+            
+            // عرض الرسائل بترتيب تصاعدي (الأقدم أولاً)
+            const sortedMessages = [...messages].reverse();
+            
+            sortedMessages.forEach(msg => {
+                if (!msg || !msg.author) return;
+                
                 const messageEl = document.createElement('div');
                 messageEl.className = 'message';
                 messageEl.setAttribute('data-message-id', msg.id);
                 
-                const timestamp = new Date(msg.timestamp).toLocaleTimeString('ar-EG', {
+                const timestamp = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('ar-EG', {
                     hour: '2-digit',
                     minute: '2-digit'
-                });
+                }) : '';
                 
-                let avatarHtml = msg.author.avatar ? 
-                    `<img src="${msg.author.avatar}" alt="${msg.author.username}">` : 
-                    msg.author.username.charAt(0).toUpperCase();
+                const authorName = msg.author.username || 'مستخدم';
+                const authorAvatar = msg.author.avatar || '';
+                const messageContent = msg.content || '';
                 
                 messageEl.innerHTML = `
-                    <div class="message-avatar">${avatarHtml}</div>
+                    <div class="message-avatar">
+                        ${authorAvatar ? `<img src="${authorAvatar}" alt="${authorName}">` : authorName.charAt(0).toUpperCase()}
+                    </div>
                     <div class="message-content">
                         <div class="message-header">
-                            <span class="message-author" style="color: ${msg.author.color || 'var(--text-primary)'}">${msg.author.username}</span>
+                            <span class="message-author">${authorName}</span>
                             <span class="message-timestamp">${timestamp}</span>
                         </div>
-                        <div class="message-text">${formatMessageContent(msg.content)}</div>
-                        <div class="message-actions">
-                            <span class="message-action" onclick="replyToMessage('${msg.id}')"><i class="fas fa-reply"></i></span>
-                            <span class="message-action" onclick="editMessage('${msg.id}')"><i class="fas fa-edit"></i></span>
-                            <span class="message-action" onclick="deleteMessage('${msg.id}')"><i class="fas fa-trash"></i></span>
-                            <span class="message-action" onclick="copyMessage('${msg.id}')"><i class="fas fa-copy"></i></span>
-                        </div>
+                        <div class="message-text">${escapeHtml(messageContent)}</div>
                     </div>
                 `;
                 
@@ -1077,17 +1133,12 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // ============ تنسيق محتوى الرسالة ============
-        function formatMessageContent(content) {
-            if (!content) return '';
-            
-            // تحويل الروابط إلى روابط قابلة للنقر
-            content = content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color: var(--accent);">$1</a>');
-            
-            // تحويل الإشارات
-            content = content.replace(/@(everyone|here)/g, '<span style="background: var(--accent); padding: 2px 4px; border-radius: 3px;">@$1</span>');
-            
-            return content;
+        // ============ دالة لتجنب XSS ============
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         // ============ إرسال رسالة ============
@@ -1095,8 +1146,13 @@
             const input = document.getElementById('messageInput');
             const content = input.value.trim();
             
-            if (!content || !currentChannelId) {
-                showNotification('اختر قناة واكتب رسالة أولاً', 'error');
+            if (!content) {
+                showNotification('اكتب رسالة أولاً', 'error');
+                return;
+            }
+            
+            if (!currentChannelId) {
+                showNotification('اختر قناة أولاً', 'error');
                 return;
             }
             
@@ -1121,6 +1177,7 @@
                 }
                 
             } catch (error) {
+                console.error('❌ خطأ في إرسال الرسالة:', error);
                 showNotification('فشل إرسال الرسالة', 'error');
             }
         };
@@ -1133,88 +1190,11 @@
             }
         };
 
-        // ============ حذف رسالة ============
-        window.deleteMessage = async (messageId) => {
-            if (!confirm('هل أنت متأكد من حذف هذه الرسالة؟')) return;
-            
-            try {
-                const response = await fetch('/api/message/delete', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        channelId: currentChannelId,
-                        messageId: messageId
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.error) {
-                    showNotification(result.error, 'error');
-                } else {
-                    showNotification('✅ تم حذف الرسالة');
-                    loadMessages(currentChannelId);
-                }
-                
-            } catch (error) {
-                showNotification('فشل حذف الرسالة', 'error');
-            }
-        };
-
-        // ============ نسخ رسالة ============
-        window.copyMessage = (messageId) => {
-            const msg = messages.find(m => m.id === messageId);
-            if (msg) {
-                navigator.clipboard.writeText(msg.content);
-                showNotification('✅ تم نسخ الرسالة');
-            }
-        };
-
-        // ============ الرد على رسالة ============
-        window.replyToMessage = (messageId) => {
-            const msg = messages.find(m => m.id === messageId);
-            if (msg) {
-                document.getElementById('messageInput').placeholder = `الرد على ${msg.author.username}...`;
-                document.getElementById('messageInput').focus();
-            }
-        };
-
-        // ============ تعديل رسالة ============
-        window.editMessage = async (messageId) => {
-            const msg = messages.find(m => m.id === messageId);
-            if (!msg) return;
-            
-            const newContent = prompt('تعديل الرسالة:', msg.content);
-            if (!newContent || newContent === msg.content) return;
-            
-            try {
-                const response = await fetch('/api/message/edit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        channelId: currentChannelId,
-                        messageId: messageId,
-                        newContent: newContent
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.error) {
-                    showNotification(result.error, 'error');
-                } else {
-                    showNotification('✅ تم تعديل الرسالة');
-                    loadMessages(currentChannelId);
-                }
-                
-            } catch (error) {
-                showNotification('فشل تعديل الرسالة', 'error');
-            }
-        };
-
         // ============ الدخول إلى قناة صوتية ============
         window.joinVoiceChannel = async () => {
-            const channelId = document.getElementById('voiceChannelSelect').value;
+            const select = document.getElementById('voiceChannelSelect');
+            const channelId = select.value;
+            
             if (!channelId) {
                 showNotification('اختر قناة صوتية أولاً', 'error');
                 return;
@@ -1239,12 +1219,17 @@
                 if (result.error) {
                     showNotification(result.error, 'error');
                 } else {
-                    showNotification(`✅ ${result.message}`);
+                    showNotification(`✅ ${result.message || 'تم الاتصال'}`);
                     document.getElementById('voiceSection').style.display = 'block';
                     loadVoiceUsers();
+                    
+                    // بدء التحديث التلقائي للمستخدمين
+                    if (refreshInterval) clearInterval(refreshInterval);
+                    refreshInterval = setInterval(loadVoiceUsers, 5000);
                 }
                 
             } catch (error) {
+                console.error('❌ خطأ في الاتصال الصوتي:', error);
                 showNotification('فشل الاتصال بالقناة الصوتية', 'error');
             }
         };
@@ -1258,11 +1243,18 @@
                 });
                 
                 const result = await response.json();
-                showNotification(result.message);
+                showNotification(result.message || 'تم المغادرة');
+                
                 document.getElementById('voiceSection').style.display = 'none';
                 document.getElementById('voiceUsers').innerHTML = '';
                 
+                if (refreshInterval) {
+                    clearInterval(refreshInterval);
+                    refreshInterval = null;
+                }
+                
             } catch (error) {
+                console.error('❌ خطأ في مغادرة الصوت:', error);
                 showNotification('فشل مغادرة القناة الصوتية', 'error');
             }
         };
@@ -1276,26 +1268,30 @@
                 const container = document.getElementById('voiceUsers');
                 container.innerHTML = '';
                 
+                if (!users || users.length === 0) {
+                    container.innerHTML = '<div class="no-messages">لا يوجد مستخدمين في الصوت</div>';
+                    return;
+                }
+                
                 users.forEach(user => {
+                    if (!user) return;
+                    
                     const userEl = document.createElement('div');
                     userEl.className = 'voice-user';
                     
                     let statusIcons = '';
-                    if (user.voice.selfMute || user.voice.mute) {
+                    if (user.voice?.selfMute || user.voice?.mute) {
                         statusIcons += '<i class="fas fa-microphone-slash" style="color: var(--red);"></i>';
                     }
-                    if (user.voice.selfDeaf || user.voice.deaf) {
+                    if (user.voice?.selfDeaf || user.voice?.deaf) {
                         statusIcons += '<i class="fas fa-volume-mute" style="color: var(--red);"></i>';
-                    }
-                    if (user.voice.streaming) {
-                        statusIcons += '<i class="fas fa-stream" style="color: var(--accent);"></i>';
                     }
                     
                     userEl.innerHTML = `
                         <div class="voice-user-avatar">
-                            <img src="${user.avatar}" alt="${user.username}">
+                            <img src="${user.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}" alt="${user.username || 'User'}">
                         </div>
-                        <div class="voice-user-name">${user.nickname || user.username}</div>
+                        <div class="voice-user-name">${user.nickname || user.username || 'مستخدم'}</div>
                         <div class="voice-user-icons">${statusIcons}</div>
                     `;
                     
@@ -1303,7 +1299,7 @@
                 });
                 
             } catch (error) {
-                console.error('خطأ في تحميل المستخدمين:', error);
+                console.error('❌ خطأ في تحميل المستخدمين:', error);
             }
         }
 
@@ -1325,18 +1321,6 @@
         // ============ دوال إضافية ============
         window.startVoiceCall = () => {
             showNotification('ميزة المكالمات قيد التطوير', 'error');
-        };
-
-        window.attachFile = () => {
-            showNotification('ميزة رفع الملفات قيد التطوير', 'error');
-        };
-
-        window.openEmojiPicker = () => {
-            showNotification('ميزة الإيموجي قيد التطوير', 'error');
-        };
-
-        window.openSettings = () => {
-            showNotification('ميزة الإعدادات قيد التطوير', 'error');
         };
     </script>
 </body>
