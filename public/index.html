@@ -1,518 +1,605 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-88">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم السيلف بوت المتطورة</title>
+    <title>Discord SelfBot - لوحة تحكم متكاملة</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Tajawal', sans-serif;
+            font-family: 'Rubik', sans-serif;
+        }
+
+        :root {
+            --bg-primary: #1a1b2f;
+            --bg-secondary: #23243a;
+            --bg-tertiary: #2c2e45;
+            --accent: #5865f2;
+            --accent-hover: #4752c4;
+            --text-primary: #ffffff;
+            --text-secondary: #b5b9d4;
+            --text-muted: #7d7f9a;
+            --green: #23a55a;
+            --red: #f23f42;
+            --yellow: #f0b232;
+            --border: #2c2e45;
         }
 
         body {
-            background: #0f0f1b;
-            min-height: 100vh;
-            color: #fff;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
         }
 
-        /* شريط التنقل العلوي */
-        .navbar {
-            background: rgba(20, 20, 35, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 15px 30px;
+        /* تخطيط مثل ديسكورد */
+        .app {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo i {
-            font-size: 32px;
-            color: #7c5dfa;
-            animation: pulse 2s infinite;
-        }
-
-        .logo h1 {
-            font-size: 24px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #7c5dfa, #b794f4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            background: rgba(255,255,255,0.05);
-            padding: 8px 20px;
-            border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .user-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            border: 3px solid #7c5dfa;
-            object-fit: cover;
-        }
-
-        .user-info {
+        /* شريط الخوادم الجانبي */
+        .guilds-bar {
+            width: 72px;
+            background: var(--bg-tertiary);
             display: flex;
             flex-direction: column;
-        }
-
-        .user-name {
-            font-weight: 700;
-            font-size: 16px;
-        }
-
-        .user-id {
-            font-size: 12px;
-            color: #888;
-        }
-
-        .status-badge {
-            display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: 12px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #2ecc71;
-            box-shadow: 0 0 10px #2ecc71;
-        }
-
-        /* الحاوية الرئيسية */
-        .dashboard {
-            display: flex;
-            min-height: calc(100vh - 80px);
-        }
-
-        /* الشريط الجانبي */
-        .sidebar {
-            width: 300px;
-            background: rgba(20, 20, 35, 0.95);
-            border-left: 1px solid rgba(255,255,255,0.1);
-            padding: 25px;
+            padding: 12px 0;
             overflow-y: auto;
+            scrollbar-width: none;
         }
 
-        .sidebar-section {
-            margin-bottom: 30px;
-        }
-
-        .sidebar-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #888;
-            font-size: 14px;
-            margin-bottom: 15px;
-            letter-spacing: 1px;
-        }
-
-        .sidebar-title i {
-            color: #7c5dfa;
-        }
-
-        .guild-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .guild-item {
-            background: rgba(255,255,255,0.03);
-            border-radius: 12px;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 1px solid transparent;
-        }
-
-        .guild-item:hover {
-            background: rgba(124, 93, 250, 0.1);
-            border-color: rgba(124, 93, 250, 0.3);
-            transform: translateX(-5px);
-        }
-
-        .guild-item.active {
-            background: linear-gradient(135deg, rgba(124, 93, 250, 0.2), rgba(183, 148, 244, 0.1));
-            border-color: #7c5dfa;
+        .guilds-bar::-webkit-scrollbar {
+            display: none;
         }
 
         .guild-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #7c5dfa, #b794f4);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 900;
+            font-weight: 600;
             font-size: 18px;
-            color: white;
+            color: var(--text-primary);
+            border: 2px solid transparent;
+        }
+
+        .guild-icon:hover {
+            border-radius: 16px;
+            background: var(--accent);
+        }
+
+        .guild-icon.active {
+            border-radius: 16px;
+            border-color: var(--accent);
+        }
+
+        .guild-icon.active::before {
+            content: '';
+            position: absolute;
+            right: -8px;
+            width: 4px;
+            height: 20px;
+            background: white;
+            border-radius: 4px;
         }
 
         .guild-icon img {
             width: 100%;
             height: 100%;
-            border-radius: 12px;
+            border-radius: inherit;
             object-fit: cover;
         }
 
-        .guild-info {
-            flex: 1;
+        .guild-separator {
+            width: 32px;
+            height: 2px;
+            background: var(--text-muted);
+            margin: 8px 0;
         }
 
-        .guild-name {
-            font-weight: 700;
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        .guild-stats {
-            font-size: 11px;
-            color: #888;
+        /* شريط القنوات */
+        .channels-bar {
+            width: 240px;
+            background: var(--bg-secondary);
             display: flex;
-            gap: 8px;
+            flex-direction: column;
         }
 
-        /* المحتوى الرئيسي */
-        .main-content {
+        .channels-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .channels-header:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .channels-list {
             flex: 1;
-            padding: 30px;
             overflow-y: auto;
+            padding: 16px 8px;
         }
 
-        /* بطاقات التحكم */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
+        .channel-category {
+            margin-bottom: 16px;
         }
 
-        .stat-card {
-            background: rgba(20, 20, 35, 0.95);
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #7c5dfa, #b794f4);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(124, 93, 250, 0.2);
-        }
-
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            background: rgba(124, 93, 250, 0.1);
-            border-radius: 15px;
+        .category-header {
+            padding: 8px 8px;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
             display: flex;
             align-items: center;
-            justify-content: center;
-            margin-bottom: 15px;
+            justify-content: space-between;
+            cursor: pointer;
         }
 
-        .stat-icon i {
-            font-size: 24px;
-            color: #7c5dfa;
+        .category-header:hover {
+            color: var(--text-primary);
         }
 
-        .stat-label {
-            color: #888;
+        .channel-item {
+            padding: 6px 8px;
+            margin: 2px 0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            color: var(--text-secondary);
             font-size: 14px;
-            margin-bottom: 5px;
         }
 
-        .stat-value {
-            font-size: 28px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #fff, #ccc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .channel-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
 
-        /* بطاقات التحكم الرئيسية */
-        .control-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 25px;
+        .channel-item.active {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
 
-        .control-card {
-            background: rgba(20, 20, 35, 0.95);
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(255,255,255,0.1);
+        .channel-item i {
+            font-size: 20px;
+            color: var(--text-muted);
         }
 
-        .card-header {
+        .channel-item.voice i {
+            color: var(--green);
+        }
+
+        /* منطقة الدردشة الرئيسية */
+        .chat-area {
+            flex: 1;
             display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-direction: column;
+            background: var(--bg-primary);
         }
 
-        .card-header i {
-            font-size: 24px;
-            color: #7c5dfa;
-            background: rgba(124, 93, 250, 0.1);
-            padding: 10px;
-            border-radius: 12px;
-        }
-
-        .card-header h2 {
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .voice-status {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
+        .chat-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
-        .status-connected {
-            color: #2ecc71;
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            display: flex;
+            gap: 16px;
+            animation: fadeIn 0.3s;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-header {
             display: flex;
             align-items: center;
             gap: 8px;
+            margin-bottom: 4px;
         }
 
-        .status-disconnected {
-            color: #e74c3c;
+        .message-author {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .message-timestamp {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .message-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message-actions {
+            opacity: 0;
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .message:hover .message-actions {
+            opacity: 1;
+        }
+
+        .message-action {
+            padding: 4px 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .message-action:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* منطقة كتابة الرسائل */
+        .chat-input-area {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .chat-input-wrapper {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 12px 16px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
         }
 
-        .channel-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
+        .chat-input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
         }
 
-        .select-wrapper {
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .chat-input-actions {
+            display: flex;
+            gap: 12px;
+            color: var(--text-muted);
+        }
+
+        .chat-input-actions i {
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .chat-input-actions i:hover {
+            color: var(--accent);
+        }
+
+        /* الشريط الجانبي الأيمن */
+        .right-sidebar {
+            width: 300px;
+            background: var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+        }
+
+        .user-panel {
+            padding: 16px;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
             position: relative;
         }
 
-        .select-wrapper select {
+        .user-avatar img {
             width: 100%;
-            padding: 12px 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: white;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 14px;
-            appearance: none;
-            cursor: pointer;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
         }
 
-        .select-wrapper i {
+        .user-status {
             position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #7c5dfa;
-            pointer-events: none;
+            bottom: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--bg-tertiary);
         }
 
-        .btn-group {
-            display: flex;
-            gap: 15px;
-        }
+        .user-status.online { background: var(--green); }
+        .user-status.idle { background: var(--yellow); }
+        .user-status.dnd { background: var(--red); }
 
-        .btn {
+        .user-info {
             flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 12px;
-            font-family: 'Tajawal', sans-serif;
+        }
+
+        .user-name {
+            font-weight: 600;
             font-size: 14px;
-            font-weight: 700;
+        }
+
+        .user-tag {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* أقسام التحكم */
+        .control-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .voice-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .voice-control-item {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .voice-control-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .voice-control-info i {
+            color: var(--green);
+        }
+
+        /* مفاتيح التشغيل */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
             cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--text-muted);
+            transition: .3s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--green);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* قائمة الخوادم في الرسائل */
+        .server-selector {
+            margin-bottom: 16px;
+        }
+
+        .server-select {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* أزرار التحكم */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            transition: all 0.3s;
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
-            color: white;
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #7c5dfa, #6c5ce7);
+            background: var(--accent);
             color: white;
         }
 
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-danger {
+            background: var(--red);
             color: white;
-            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(124, 93, 250, 0.3);
+        .btn-danger:hover {
+            opacity: 0.8;
         }
 
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #888;
-            font-size: 14px;
-        }
-
-        .input-group input, .input-group textarea, .input-group select {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+        .btn-success {
+            background: var(--green);
             color: white;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 14px;
         }
 
-        .input-group textarea {
-            min-height: 100px;
-            resize: vertical;
+        /* قائمة السياق */
+        .context-menu {
+            position: fixed;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 4px 0;
+            min-width: 160px;
+            z-index: 1000;
         }
 
-        .input-group input:focus, .input-group textarea:focus, .input-group select:focus {
-            outline: none;
-            border-color: #7c5dfa;
-        }
-
-        /* التبويبات */
-        .tabs {
+        .context-menu-item {
+            padding: 8px 12px;
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .tab {
-            padding: 10px 20px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
+            align-items: center;
+            gap: 8px;
             cursor: pointer;
-            transition: all 0.3s;
+            color: var(--text-secondary);
             font-size: 14px;
         }
 
-        .tab.active {
-            background: #7c5dfa;
+        .context-menu-item:hover {
+            background: var(--accent);
+            color: white;
         }
 
-        .tab-content {
-            display: none;
+        .context-menu-item.danger:hover {
+            background: var(--red);
         }
 
-        .tab-content.active {
-            display: block;
+        /* مؤشر الصوت */
+        .voice-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 8px;
         }
 
-        /* الأنيميشن */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        .voice-user {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--bg-tertiary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
         }
 
-        /* التجاوب مع الشاشات الصغيرة */
-        @media (max-width: 768px) {
-            .dashboard {
-                flex-direction: column;
-            }
-            
-            .sidebar {
-                width: 100%;
-                max-height: 300px;
-            }
-            
-            .control-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .channel-selector {
-                grid-template-columns: 1fr;
-            }
-            
-            .btn-group {
-                flex-direction: column;
-            }
+        .voice-user i {
+            color: var(--green);
         }
 
-        /* شريط التحميل */
+        .voice-user.muted i {
+            color: var(--red);
+        }
+
+        .voice-user.deaf i {
+            color: var(--yellow);
+        }
+
+        /* التحميل */
         .loading {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            padding: 30px;
+            padding: 20px;
+            color: var(--text-muted);
         }
 
         .loading i {
             animation: spin 1s linear infinite;
-            color: #7c5dfa;
         }
 
         @keyframes spin {
@@ -520,19 +607,22 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* الإشعارات */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* إشعارات */
         .notification {
             position: fixed;
             top: 20px;
             left: 20px;
-            background: rgba(20, 20, 35, 0.95);
-            border-right: 4px solid #7c5dfa;
-            padding: 15px 25px;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-            z-index: 9999;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: var(--bg-tertiary);
+            border-right: 4px solid var(--accent);
+            padding: 12px 20px;
+            border-radius: 4px;
+            z-index: 10000;
+            animation: slideIn 0.3s;
         }
 
         @keyframes slideIn {
@@ -542,302 +632,247 @@
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <div class="logo">
-            <i class="fas fa-robot"></i>
-            <h1>SelfBot Pro</h1>
-        </div>
-        <div class="user-profile" id="userProfile">
+    <div class="app">
+        <!-- شريط الخوادم -->
+        <div class="guilds-bar" id="guildsBar">
+            <div class="guild-icon active">
+                <i class="fas fa-compass"></i>
+            </div>
+            <div class="guild-separator"></div>
             <div class="loading">
-                <i class="fas fa-spinner"></i> جاري التحميل...
+                <i class="fas fa-spinner"></i>
             </div>
         </div>
-    </div>
 
-    <div class="dashboard">
-        <div class="sidebar">
-            <div class="sidebar-section">
-                <div class="sidebar-title">
-                    <i class="fas fa-server"></i>
-                    <span>الخوادم المتاحة</span>
-                </div>
-                <div class="guild-list" id="guildList">
-                    <div class="loading">
-                        <i class="fas fa-spinner"></i> جاري تحميل الخوادم...
-                    </div>
-                </div>
+        <!-- شريط القنوات -->
+        <div class="channels-bar" id="channelsBar">
+            <div class="channels-header">
+                <span id="selectedGuildName">اختر سيرفر</span>
+                <i class="fas fa-chevron-down"></i>
             </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-title">
-                    <i class="fas fa-chart-line"></i>
-                    <span>إحصائيات سريعة</span>
-                </div>
-                <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 15px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span style="color: #888;">حالة الاتصال:</span>
-                        <span style="color: #2ecc71;" id="connectionStatusText">متصل</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span style="color: #888;">آخر تحديث:</span>
-                        <span style="color: #fff;" id="lastUpdate">-</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="color: #888;">الإصدار:</span>
-                        <span style="color: #fff;">v2.0.0</span>
-                    </div>
+            <div class="channels-list" id="channelsList">
+                <div class="loading">
+                    <i class="fas fa-spinner"></i> جاري التحميل...
                 </div>
             </div>
         </div>
 
-        <div class="main-content">
-            <!-- بطاقات الإحصائيات -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-server"></i>
-                    </div>
-                    <div class="stat-label">عدد الخوادم</div>
-                    <div class="stat-value" id="statGuilds">0</div>
+        <!-- منطقة الدردشة -->
+        <div class="chat-area">
+            <div class="chat-header" id="chatHeader">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-hashtag" style="color: var(--text-muted);"></i>
+                    <span id="currentChannelName">الرسائل</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-label">إجمالي الأعضاء</div>
-                    <div class="stat-value" id="statMembers">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-headphones"></i>
-                    </div>
-                    <div class="stat-label">الحالة الصوتية</div>
-                    <div class="stat-value" id="statVoice">غير متصل</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-label">وقت التشغيل</div>
-                    <div class="stat-value" id="statUptime">0</div>
+                <div style="display: flex; gap: 16px; color: var(--text-muted);">
+                    <i class="fas fa-phone-alt" style="cursor: pointer;" title="بدء مكالمة"></i>
+                    <i class="fas fa-video" style="cursor: pointer;" title="بدء فيديو"></i>
+                    <i class="fas fa-user-plus" style="cursor: pointer;" title="دعوة"></i>
+                    <i class="fas fa-search" style="cursor: pointer;" title="بحث"></i>
+                    <i class="fas fa-inbox" style="cursor: pointer;" title="الوارد"></i>
+                    <i class="fas fa-question-circle" style="cursor: pointer;" title="مساعدة"></i>
                 </div>
             </div>
 
-            <!-- التبويبات -->
-            <div class="tabs">
-                <div class="tab active" onclick="switchTab('voice')">🔊 التحكم الصوتي</div>
-                <div class="tab" onclick="switchTab('status')">🔄 الحالة والنشاط</div>
-                <div class="tab" onclick="switchTab('messages')">💬 الرسائل</div>
-                <div class="tab" onclick="switchTab('settings')">⚙️ الإعدادات</div>
+            <div class="chat-messages" id="chatMessages">
+                <!-- الرسائل ستظهر هنا -->
+                <div class="loading">
+                    <i class="fas fa-spinner"></i> جاري تحميل الرسائل...
+                </div>
             </div>
 
-            <!-- تبويب التحكم الصوتي -->
-            <div id="voiceTab" class="tab-content active">
-                <div class="control-card">
-                    <div class="card-header">
-                        <i class="fas fa-microphone-alt"></i>
-                        <h2>التحكم في القنوات الصوتية</h2>
+            <div class="chat-input-area">
+                <div class="chat-input-wrapper">
+                    <input type="text" class="chat-input" id="messageInput" placeholder="اكتب رسالة...">
+                    <div class="chat-input-actions">
+                        <i class="fas fa-paperclip" title="إرفاق ملف"></i>
+                        <i class="fas fa-smile" title="إضافة إيموجي"></i>
+                        <i class="fas fa-gift" title="هدية"></i>
+                        <i class="fas fa-paper-plane" id="sendMessageBtn" title="إرسال"></i>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- الشريط الجانبي الأيمن -->
+        <div class="right-sidebar">
+            <!-- لوحة المستخدم -->
+            <div class="user-panel" id="userPanel">
+                <div class="user-avatar" id="userAvatar">
+                    <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Avatar">
+                    <div class="user-status online" id="userStatus"></div>
+                </div>
+                <div class="user-info">
+                    <div class="user-name" id="userName">جاري التحميل...</div>
+                    <div class="user-tag" id="userTag">#0000</div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <i class="fas fa-microphone" style="cursor: pointer;" title="كتم الميكروفون" id="micToggle"></i>
+                    <i class="fas fa-headphones" style="cursor: pointer;" title="كتم السماعة" id="deafToggle"></i>
+                    <i class="fas fa-cog" style="cursor: pointer;" title="الإعدادات"></i>
+                </div>
+            </div>
+
+            <!-- التحكم الصوتي -->
+            <div class="control-section">
+                <div class="section-title">
+                    <span>التحكم الصوتي</span>
+                    <i class="fas fa-sliders-h"></i>
+                </div>
+                
+                <div class="voice-controls">
+                    <div class="voice-control-item">
+                        <div class="voice-control-info">
+                            <i class="fas fa-microphone"></i>
+                            <span>كتم الميكروفون</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="micMuteToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="voice-control-item">
+                        <div class="voice-control-info">
+                            <i class="fas fa-volume-mute"></i>
+                            <span>كتم السماعة</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="deafMuteToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="voice-control-item">
+                        <div class="voice-control-info">
+                            <i class="fas fa-clock"></i>
+                            <span>وضع AFK</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="afkToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- اختيار القناة الصوتية -->
+                <div style="margin-top: 16px;">
+                    <select class="server-select" id="voiceGuildSelect">
+                        <option value="">اختر سيرفر للصوت</option>
+                    </select>
+                    <select class="server-select" style="margin-top: 8px;" id="voiceChannelSelect">
+                        <option value="">اختر قناة صوتية</option>
+                    </select>
                     
-                    <div class="voice-status" id="voiceStatus">
-                        <div class="status-disconnected">
-                            <i class="fas fa-circle"></i>
-                            <span>غير متصل بأي قناة صوتية</span>
-                        </div>
-                    </div>
-
-                    <div class="channel-selector">
-                        <div class="select-wrapper">
-                            <select id="voiceGuildSelect">
-                                <option value="">اختر الخادم</option>
-                            </select>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="select-wrapper">
-                            <select id="voiceChannelSelect">
-                                <option value="">اختر القناة الصوتية</option>
-                            </select>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                    </div>
-
-                    <div class="btn-group">
-                        <button class="btn btn-success" id="joinVoiceBtn">
-                            <i class="fas fa-sign-in-alt"></i>
-                            دخول القناة
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <button class="btn btn-success" style="flex: 1;" id="joinVoiceBtn">
+                            <i class="fas fa-sign-in-alt"></i> دخول
                         </button>
-                        <button class="btn btn-danger" id="leaveVoiceBtn">
-                            <i class="fas fa-sign-out-alt"></i>
-                            مغادرة القناة
+                        <button class="btn btn-danger" style="flex: 1;" id="leaveVoiceBtn">
+                            <i class="fas fa-sign-out-alt"></i> خروج
                         </button>
                     </div>
                 </div>
+
+                <!-- المتصلون في الصوت -->
+                <div class="voice-indicator" id="voiceUsers">
+                    <!-- المستخدمين في الصوت سيظهرون هنا -->
+                </div>
             </div>
 
-            <!-- تبويب الحالة والنشاط -->
-            <div id="statusTab" class="tab-content">
-                <div class="control-card">
-                    <div class="card-header">
-                        <i class="fas fa-user-circle"></i>
-                        <h2>تحديث الحالة والنشاط</h2>
-                    </div>
+            <!-- التحكم في الرسائل -->
+            <div class="control-section">
+                <div class="section-title">
+                    <span>التحكم في الرسائل</span>
+                    <i class="fas fa-edit"></i>
+                </div>
 
-                    <div class="input-group">
-                        <label>الحالة:</label>
-                        <select id="statusSelect">
-                            <option value="online">🟢 متصل</option>
-                            <option value="idle">🟡 غير نشط</option>
-                            <option value="dnd">🔴 مشغول</option>
-                            <option value="invisible">⚫ غير مرئي</option>
-                        </select>
-                    </div>
+                <div style="margin-bottom: 12px;">
+                    <select class="server-select" id="messageGuildSelect">
+                        <option value="">اختر سيرفر للرسائل</option>
+                    </select>
+                    <select class="server-select" style="margin-top: 8px;" id="messageChannelSelect">
+                        <option value="">اختر قناة نصية</option>
+                    </select>
+                </div>
 
-                    <div class="input-group">
-                        <label>نوع النشاط:</label>
-                        <select id="activityTypeSelect">
-                            <option value="0">🎮 يلعب</option>
-                            <option value="1">📺 يبث</option>
-                            <option value="2">🎵 يستمع إلى</option>
-                            <option value="3">👀 يشاهد</option>
-                            <option value="4">🆕 ينافس في</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group">
-                        <label>نص النشاط:</label>
-                        <input type="text" id="activityText" placeholder="اكتب النشاط هنا...">
-                    </div>
-
-                    <button class="btn btn-primary" id="updateStatusBtn" style="width: 100%;">
-                        <i class="fas fa-sync-alt"></i>
-                        تحديث الحالة
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-primary" style="flex: 1;" id="loadMessagesBtn">
+                        <i class="fas fa-sync"></i> تحميل الرسائل
+                    </button>
+                    <button class="btn btn-danger" style="flex: 1;" id="clearMessagesBtn">
+                        <i class="fas fa-trash"></i> مسح
                     </button>
                 </div>
             </div>
 
-            <!-- تبويب الرسائل -->
-            <div id="messagesTab" class="tab-content">
-                <div class="control-card">
-                    <div class="card-header">
-                        <i class="fas fa-comment-dots"></i>
-                        <h2>إرسال الرسائل</h2>
-                    </div>
-
-                    <div class="input-group">
-                        <label>اختر القناة:</label>
-                        <select id="messageChannelSelect">
-                            <option value="">اختر القناة النصية</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group">
-                        <label>الرسالة:</label>
-                        <textarea id="messageText" placeholder="اكتب رسالتك هنا..."></textarea>
-                    </div>
-
-                    <button class="btn btn-primary" id="sendMessageBtn" style="width: 100%;">
-                        <i class="fas fa-paper-plane"></i>
-                        إرسال الرسالة
-                    </button>
+            <!-- إحصائيات سريعة -->
+            <div class="control-section">
+                <div class="section-title">
+                    <span>إحصائيات</span>
+                    <i class="fas fa-chart-line"></i>
                 </div>
-            </div>
-
-            <!-- تبويب الإعدادات -->
-            <div id="settingsTab" class="tab-content">
-                <div class="control-card">
-                    <div class="card-header">
-                        <i class="fas fa-cog"></i>
-                        <h2>الإعدادات المتقدمة</h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div style="background: var(--bg-tertiary); padding: 8px; border-radius: 4px; text-align: center;">
+                        <div style="font-size: 12px; color: var(--text-muted;">السيرفرات</div>
+                        <div style="font-weight: 700;" id="statGuilds">0</div>
                     </div>
-
-                    <div class="input-group">
-                        <label>اللغة:</label>
-                        <select>
-                            <option value="ar" selected>🇸🇦 العربية</option>
-                            <option value="en">🇬🇧 English</option>
-                        </select>
+                    <div style="background: var(--bg-tertiary); padding: 8px; border-radius: 4px; text-align: center;">
+                        <div style="font-size: 12px; color: var(--text-muted;">القنوات</div>
+                        <div style="font-weight: 700;" id="statChannels">0</div>
                     </div>
-
-                    <div class="input-group">
-                        <label>تحديث تلقائي:</label>
-                        <select id="autoRefresh">
-                            <option value="30">كل 30 ثانية</option>
-                            <option value="60">كل دقيقة</option>
-                            <option value="300">كل 5 دقائق</option>
-                            <option value="0">إيقاف</option>
-                        </select>
+                    <div style="background: var(--bg-tertiary); padding: 8px; border-radius: 4px; text-align: center;">
+                        <div style="font-size: 12px; color: var(--text-muted;">الأعضاء</div>
+                        <div style="font-weight: 700;" id="statMembers">0</div>
                     </div>
-
-                    <div class="input-group">
-                        <label>الإشعارات:</label>
-                        <select id="notifications">
-                            <option value="all">جميع الإشعارات</option>
-                            <option value="important">الهامة فقط</option>
-                            <option value="none">بدون إشعارات</option>
-                        </select>
+                    <div style="background: var(--bg-tertiary); padding: 8px; border-radius: 4px; text-align: center;">
+                        <div style="font-size: 12px; color: var(--text-muted;">الرسائل</div>
+                        <div style="font-weight: 700;" id="statMessages">0</div>
                     </div>
-
-                    <button class="btn btn-secondary" id="saveSettingsBtn" style="width: 100%;">
-                        <i class="fas fa-save"></i>
-                        حفظ الإعدادات
-                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- مكان عرض الإشعارات -->
+    <!-- قائمة السياق -->
+    <div id="contextMenu" class="context-menu" style="display: none;">
+        <div class="context-menu-item" id="editMessage">
+            <i class="fas fa-edit"></i> تعديل
+        </div>
+        <div class="context-menu-item" id="deleteMessage">
+            <i class="fas fa-trash"></i> حذف
+        </div>
+        <div class="context-menu-item" id="copyMessage">
+            <i class="fas fa-copy"></i> نسخ
+        </div>
+        <div class="context-menu-item" id="pinMessage">
+            <i class="fas fa-thumbtack"></i> تثبيت
+        </div>
+        <div class="context-menu-item" id="replyMessage">
+            <i class="fas fa-reply"></i> رد
+        </div>
+    </div>
+
+    <!-- مكان الإشعارات -->
     <div id="notificationContainer"></div>
 
     <script>
         // متغيرات عامة
         let currentGuildId = null;
-        let refreshInterval = null;
+        let currentChannelId = null;
         let guildsData = [];
+        let messages = [];
+        let currentMessageId = null;
+        let voiceUsers = [];
+        let isMicMuted = false;
+        let isDeafMuted = false;
+        let isAfk = false;
 
-        // تبديل التبويبات
-        function switchTab(tabName) {
-            // إخفاء كل التبويبات
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // إظهار التبويب المحدد
-            document.getElementById(tabName + 'Tab').classList.add('active');
-            
-            // تحديث حالة التبويبات
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event.target.classList.add('active');
-        }
-
-        // إظهار إشعار
-        function showNotification(message, type = 'success') {
-            const container = document.getElementById('notificationContainer');
-            const notification = document.createElement('div');
-            notification.className = 'notification';
-            notification.style.borderRightColor = type === 'success' ? '#2ecc71' : '#e74c3c';
-            notification.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}" style="color: ${type === 'success' ? '#2ecc71' : '#e74c3c'};"></i>
-                    <span>${message}</span>
-                </div>
-            `;
-            
-            container.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
-
-        // تحميل معلومات المستخدم
+        // تحميل البيانات
         async function loadUserInfo() {
             try {
                 const response = await fetch('/api/user');
-                if (!response.ok) throw new Error('فشل الاتصال');
-                
                 const user = await response.json();
                 
                 if (user.error) {
@@ -845,117 +880,113 @@
                     return;
                 }
                 
-                const userProfile = document.getElementById('userProfile');
-                userProfile.innerHTML = `
-                    <img src="${user.avatar}" class="user-avatar" alt="Avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                    <div class="user-info">
-                        <span class="user-name">${user.username}#${user.discriminator}</span>
-                        <span class="user-id">${user.id}</span>
-                        <div class="status-badge">
-                            <span class="status-dot"></span>
-                            <span>${user.status === 'online' ? 'متصل' : 'غير متصل'}</span>
-                        </div>
-                    </div>
-                `;
+                document.getElementById('userName').textContent = user.username;
+                document.getElementById('userTag').textContent = '#' + user.discriminator;
                 
-                document.getElementById('connectionStatusText').textContent = 'متصل';
-                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ar-EG');
+                const avatarImg = document.querySelector('#userAvatar img');
+                avatarImg.src = user.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png';
+                
+                // تحديث الحالة
+                const statusDot = document.querySelector('#userStatus');
+                statusDot.className = `user-status ${user.status || 'online'}`;
                 
             } catch (error) {
                 console.error('خطأ:', error);
-                showNotification('فشل تحميل معلومات المستخدم', 'error');
             }
         }
 
-        // تحميل الخوادم
         async function loadGuilds() {
             try {
                 const response = await fetch('/api/guilds');
-                if (!response.ok) throw new Error('فشل الاتصال');
-                
                 guildsData = await response.json();
                 
-                // تحديث إحصائيات الخوادم
+                // تحديث إحصائيات
                 document.getElementById('statGuilds').textContent = guildsData.length;
                 
                 let totalMembers = 0;
-                guildsData.forEach(g => totalMembers += g.memberCount || 0);
+                let totalChannels = 0;
+                guildsData.forEach(g => {
+                    totalMembers += g.memberCount || 0;
+                    totalChannels += g.channels?.length || 0;
+                });
                 document.getElementById('statMembers').textContent = totalMembers.toLocaleString();
+                document.getElementById('statChannels').textContent = totalChannels;
                 
-                // عرض الخوادم في القائمة الجانبية
-                const guildList = document.getElementById('guildList');
-                guildList.innerHTML = '';
+                // عرض الخوادم في الشريط الجانبي
+                const guildsBar = document.getElementById('guildsBar');
+                // إزالة علامات التحميل
+                document.querySelectorAll('#guildsBar .loading').forEach(el => el.remove());
                 
-                if (guildsData.length === 0) {
-                    guildList.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">لا توجد خوادم متاحة</div>';
-                    return;
-                }
-                
-                guildsData.forEach(guild => {
-                    const guildElement = document.createElement('div');
-                    guildElement.className = 'guild-item';
-                    guildElement.dataset.guildId = guild.id;
-                    
-                    let iconHtml = guild.name.charAt(0);
-                    if (guild.icon) {
-                        iconHtml = `<img src="${guild.icon}" alt="${guild.name}">`;
+                guildsData.forEach((guild, index) => {
+                    const guildIcon = document.createElement('div');
+                    guildIcon.className = 'guild-icon';
+                    if (index === 0) {
+                        guildIcon.classList.add('active');
+                        selectGuild(guild.id);
                     }
                     
-                    const voiceChannels = guild.channels?.filter(c => c.type === 'voice').length || 0;
-                    const textChannels = guild.channels?.filter(c => c.type === 'text').length || 0;
+                    if (guild.icon) {
+                        guildIcon.innerHTML = `<img src="${guild.icon}" alt="${guild.name}" title="${guild.name}">`;
+                    } else {
+                        guildIcon.textContent = guild.name.charAt(0);
+                        guildIcon.title = guild.name;
+                    }
                     
-                    guildElement.innerHTML = `
-                        <div class="guild-icon">
-                            ${iconHtml}
-                        </div>
-                        <div class="guild-info">
-                            <div class="guild-name">${guild.name}</div>
-                            <div class="guild-stats">
-                                <span><i class="fas fa-users"></i> ${guild.memberCount || 0}</span>
-                                <span><i class="fas fa-voice"></i> ${voiceChannels}</span>
-                                <span><i class="fas fa-comment"></i> ${textChannels}</span>
-                            </div>
-                        </div>
-                    `;
+                    guildIcon.onclick = () => {
+                        document.querySelectorAll('.guild-icon').forEach(g => g.classList.remove('active'));
+                        guildIcon.classList.add('active');
+                        selectGuild(guild.id);
+                    };
                     
-                    guildElement.onclick = () => selectGuild(guild);
-                    guildList.appendChild(guildElement);
+                    guildsBar.appendChild(guildIcon);
                 });
                 
                 // تحديث قوائم الاختيار
-                updateVoiceGuildSelect();
-                updateMessageChannels();
+                updateGuildSelects();
                 
             } catch (error) {
                 console.error('خطأ:', error);
-                showNotification('فشل تحميل الخوادم', 'error');
             }
         }
 
-        // تحديث قائمة الخوادم الصوتية
-        function updateVoiceGuildSelect() {
-            const select = document.getElementById('voiceGuildSelect');
-            select.innerHTML = '<option value="">اختر الخادم</option>';
+        function updateGuildSelects() {
+            const voiceSelect = document.getElementById('voiceGuildSelect');
+            const messageSelect = document.getElementById('messageGuildSelect');
+            
+            voiceSelect.innerHTML = '<option value="">اختر سيرفر للصوت</option>';
+            messageSelect.innerHTML = '<option value="">اختر سيرفر للرسائل</option>';
             
             guildsData.forEach(guild => {
-                const option = document.createElement('option');
-                option.value = guild.id;
-                option.textContent = guild.name;
-                select.appendChild(option);
+                const option1 = document.createElement('option');
+                option1.value = guild.id;
+                option1.textContent = guild.name;
+                voiceSelect.appendChild(option1.cloneNode(true));
+                
+                const option2 = document.createElement('option');
+                option2.value = guild.id;
+                option2.textContent = guild.name;
+                messageSelect.appendChild(option2);
             });
             
-            select.onchange = (e) => {
+            // تحديث القنوات عند اختيار سيرفر
+            voiceSelect.onchange = (e) => {
                 const guild = guildsData.find(g => g.id === e.target.value);
                 if (guild) {
                     updateVoiceChannels(guild.channels?.filter(c => c.type === 'voice') || []);
                 }
             };
+            
+            messageSelect.onchange = (e) => {
+                const guild = guildsData.find(g => g.id === e.target.value);
+                if (guild) {
+                    updateMessageChannels(guild.channels?.filter(c => c.type === 'text') || []);
+                }
+            };
         }
 
-        // تحديث قائمة القنوات الصوتية
         function updateVoiceChannels(channels) {
             const select = document.getElementById('voiceChannelSelect');
-            select.innerHTML = '<option value="">اختر القناة الصوتية</option>';
+            select.innerHTML = '<option value="">اختر قناة صوتية</option>';
             
             channels.forEach(channel => {
                 const option = document.createElement('option');
@@ -965,104 +996,214 @@
             });
         }
 
-        // تحديث قائمة القنوات النصية
-        function updateMessageChannels() {
+        function updateMessageChannels(channels) {
             const select = document.getElementById('messageChannelSelect');
-            select.innerHTML = '<option value="">اختر القناة النصية</option>';
+            select.innerHTML = '<option value="">اختر قناة نصية</option>';
             
-            guildsData.forEach(guild => {
-                const textChannels = guild.channels?.filter(c => c.type === 'text') || [];
-                textChannels.forEach(channel => {
-                    const option = document.createElement('option');
-                    option.value = channel.id;
-                    option.textContent = `${guild.name} - #${channel.name}`;
-                    select.appendChild(option);
-                });
+            channels.forEach(channel => {
+                const option = document.createElement('option');
+                option.value = channel.id;
+                option.textContent = channel.name;
+                select.appendChild(option);
             });
         }
 
-        // اختيار خادم من القائمة
-        function selectGuild(guild) {
-            currentGuildId = guild.id;
+        function selectGuild(guildId) {
+            currentGuildId = guildId;
+            const guild = guildsData.find(g => g.id === guildId);
             
-            document.querySelectorAll('.guild-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            const selected = document.querySelector(`[data-guild-id="${guild.id}"]`);
-            if (selected) selected.classList.add('active');
-            
-            // تحديث القوائم المنسدلة
-            const voiceSelect = document.getElementById('voiceGuildSelect');
-            if (voiceSelect) voiceSelect.value = guild.id;
-            
-            updateVoiceChannels(guild.channels?.filter(c => c.type === 'voice') || []);
-        }
-
-        // التحقق من حالة الصوت
-        async function checkVoiceStatus() {
-            try {
-                const response = await fetch('/api/voice/status');
-                if (!response.ok) return;
-                
-                const status = await response.json();
-                
-                const voiceStatus = document.getElementById('voiceStatus');
-                const statVoice = document.getElementById('statVoice');
-                
-                if (status.connected) {
-                    voiceStatus.innerHTML = `
-                        <div class="status-connected">
-                            <i class="fas fa-circle"></i>
-                            <span>✅ متصل بقناة صوتية</span>
-                        </div>
-                    `;
-                    statVoice.textContent = 'متصل';
-                } else {
-                    voiceStatus.innerHTML = `
-                        <div class="status-disconnected">
-                            <i class="fas fa-circle"></i>
-                            <span>🔇 غير متصل بأي قناة صوتية</span>
-                        </div>
-                    `;
-                    statVoice.textContent = 'غير متصل';
-                }
-            } catch (error) {
-                console.error('خطأ:', error);
+            if (guild) {
+                document.getElementById('selectedGuildName').textContent = guild.name;
+                displayChannels(guild.channels || []);
             }
         }
 
-        // عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', () => {
-            loadUserInfo();
-            loadGuilds();
-            checkVoiceStatus();
+        function displayChannels(channels) {
+            const channelsList = document.getElementById('channelsList');
+            channelsList.innerHTML = '';
             
-            // تحديث وقت التشغيل
-            let uptime = 0;
-            setInterval(() => {
-                uptime++;
-                const hours = Math.floor(uptime / 3600);
-                const minutes = Math.floor((uptime % 3600) / 60);
-                const seconds = uptime % 60;
-                document.getElementById('statUptime').textContent = 
-                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
+            // تقسيم القنوات إلى نصية وصوتية
+            const textChannels = channels.filter(c => c.type === 'text');
+            const voiceChannels = channels.filter(c => c.type === 'voice');
             
-            // تحديث دوري
-            setInterval(() => {
-                checkVoiceStatus();
-                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ar-EG');
-            }, 30000);
-        });
+            if (textChannels.length > 0) {
+                const category = document.createElement('div');
+                category.className = 'channel-category';
+                category.innerHTML = `
+                    <div class="category-header">
+                        <span>قنوات نصية</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                `;
+                
+                textChannels.forEach(channel => {
+                    const channelItem = document.createElement('div');
+                    channelItem.className = 'channel-item';
+                    channelItem.innerHTML = `
+                        <i class="fas fa-hashtag"></i>
+                        <span>${channel.name}</span>
+                    `;
+                    channelItem.onclick = () => selectChannel(channel.id, channel.name);
+                    category.appendChild(channelItem);
+                });
+                
+                channelsList.appendChild(category);
+            }
+            
+            if (voiceChannels.length > 0) {
+                const category = document.createElement('div');
+                category.className = 'channel-category';
+                category.innerHTML = `
+                    <div class="category-header">
+                        <span>قنوات صوتية</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                `;
+                
+                voiceChannels.forEach(channel => {
+                    const channelItem = document.createElement('div');
+                    channelItem.className = 'channel-item voice';
+                    channelItem.innerHTML = `
+                        <i class="fas fa-volume-up"></i>
+                        <span>${channel.name}</span>
+                    `;
+                    category.appendChild(channelItem);
+                });
+                
+                channelsList.appendChild(category);
+            }
+        }
 
-        // أزرار التحكم الصوتي
+        function selectChannel(channelId, channelName) {
+            currentChannelId = channelId;
+            document.getElementById('currentChannelName').textContent = channelName;
+            
+            // تحديث القوائم
+            document.querySelectorAll('.channel-item').forEach(c => c.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            // تحميل الرسائل
+            loadMessages(channelId);
+        }
+
+        async function loadMessages(channelId) {
+            try {
+                // في الواقع، يجب جلب الرسائل من API
+                // هذا مجرد مثال
+                const mockMessages = [
+                    {
+                        id: 1,
+                        author: 'مستخدم 1',
+                        content: 'مرحباً!',
+                        timestamp: new Date().toLocaleTimeString(),
+                        avatar: 'U1'
+                    },
+                    {
+                        id: 2,
+                        author: 'مستخدم 2',
+                        content: 'كيف الحال؟',
+                        timestamp: new Date().toLocaleTimeString(),
+                        avatar: 'U2'
+                    }
+                ];
+                
+                displayMessages(mockMessages);
+                document.getElementById('statMessages').textContent = mockMessages.length;
+                
+            } catch (error) {
+                console.error('خطأ في تحميل الرسائل:', error);
+            }
+        }
+
+        function displayMessages(messages) {
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = '';
+            
+            messages.forEach(msg => {
+                const messageEl = document.createElement('div');
+                messageEl.className = 'message';
+                messageEl.dataset.messageId = msg.id;
+                
+                messageEl.innerHTML = `
+                    <div class="message-avatar">${msg.avatar}</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">${msg.author}</span>
+                            <span class="message-timestamp">${msg.timestamp}</span>
+                        </div>
+                        <div class="message-text">${msg.content}</div>
+                        <div class="message-actions">
+                            <span class="message-action" onclick="showContextMenu(${msg.id}, event)">⚙️</span>
+                            <span class="message-action" onclick="replyToMessage('${msg.id}')">↩️ رد</span>
+                            <span class="message-action" onclick="deleteMessage('${msg.id}')">🗑️ حذف</span>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(messageEl);
+            });
+        }
+
+        // إظهار قائمة السياق
+        function showContextMenu(messageId, event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            currentMessageId = messageId;
+            const menu = document.getElementById('contextMenu');
+            
+            menu.style.display = 'block';
+            menu.style.top = event.pageY + 'px';
+            menu.style.left = event.pageX + 'px';
+            
+            // إخفاء القائمة عند النقر خارجها
+            document.addEventListener('click', function hideMenu() {
+                menu.style.display = 'none';
+                document.removeEventListener('click', hideMenu);
+            });
+        }
+
+        // إرسال رسالة
+        document.getElementById('sendMessageBtn').onclick = async () => {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || !currentChannelId) {
+                showNotification('اختر قناة واكتب رسالة أولاً', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/message/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        channelId: currentChannelId,
+                        message: message
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.error) {
+                    showNotification(result.error, 'error');
+                } else {
+                    showNotification('تم إرسال الرسالة');
+                    input.value = '';
+                    // إعادة تحميل الرسائل
+                    loadMessages(currentChannelId);
+                }
+            } catch (error) {
+                showNotification('فشل إرسال الرسالة', 'error');
+            }
+        };
+
+        // التحكم في الصوت
         document.getElementById('joinVoiceBtn').onclick = async () => {
             const guildId = document.getElementById('voiceGuildSelect').value;
             const channelId = document.getElementById('voiceChannelSelect').value;
             
             if (!guildId || !channelId) {
-                showNotification('الرجاء اختيار الخادم والقناة الصوتية', 'error');
+                showNotification('اختر سيرفر وقناة صوتية', 'error');
                 return;
             }
             
@@ -1077,11 +1218,10 @@
                 if (result.error) {
                     showNotification(result.error, 'error');
                 } else {
-                    showNotification('تم الاتصال بالقناة الصوتية بنجاح');
-                    checkVoiceStatus();
+                    showNotification('تم الاتصال بالقناة الصوتية');
                 }
             } catch (error) {
-                showNotification('فشل الاتصال بالقناة الصوتية', 'error');
+                showNotification('فشل الاتصال', 'error');
             }
         };
 
@@ -1094,65 +1234,124 @@
                 
                 const result = await response.json();
                 showNotification(result.message);
-                checkVoiceStatus();
             } catch (error) {
-                showNotification('فشل مغادرة القناة الصوتية', 'error');
+                showNotification('فشل المغادرة', 'error');
             }
         };
 
-        // تحديث الحالة
-        document.getElementById('updateStatusBtn').onclick = async () => {
-            const status = document.getElementById('statusSelect').value;
-            const activityType = document.getElementById('activityTypeSelect').value;
-            const activity = document.getElementById('activityText').value;
+        // تبديل حالة الكتم
+        document.getElementById('micMuteToggle').onchange = (e) => {
+            isMicMuted = e.target.checked;
+            const micIcon = document.querySelector('#micToggle');
+            micIcon.style.color = isMicMuted ? 'var(--red)' : '';
+            showNotification(isMicMuted ? 'تم كتم الميكروفون' : 'تم إلغاء كتم الميكروفون');
+        };
+
+        document.getElementById('deafMuteToggle').onchange = (e) => {
+            isDeafMuted = e.target.checked;
+            const deafIcon = document.querySelector('#deafToggle');
+            deafIcon.style.color = isDeafMuted ? 'var(--red)' : '';
+            showNotification(isDeafMuted ? 'تم كتم السماعة' : 'تم إلغاء كتم السماعة');
+        };
+
+        document.getElementById('afkToggle').onchange = (e) => {
+            isAfk = e.target.checked;
+            showNotification(isAfk ? 'تم تفعيل وضع AFK' : 'تم إلغاء وضع AFK');
             
-            try {
-                const response = await fetch('/api/status', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status, activity, activityType })
-                });
-                
-                const result = await response.json();
-                showNotification(result.message || 'تم تحديث الحالة');
-            } catch (error) {
-                showNotification('فشل تحديث الحالة', 'error');
+            // إرسال الحالة للبوت
+            fetch('/api/status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    status: isAfk ? 'idle' : 'online'
+                })
+            });
+        };
+
+        // أيقونات التحكم
+        document.getElementById('micToggle').onclick = () => {
+            const toggle = document.getElementById('micMuteToggle');
+            toggle.checked = !toggle.checked;
+            toggle.dispatchEvent(new Event('change'));
+        };
+
+        document.getElementById('deafToggle').onclick = () => {
+            const toggle = document.getElementById('deafMuteToggle');
+            toggle.checked = !toggle.checked;
+            toggle.dispatchEvent(new Event('change'));
+        };
+
+        // حذف رسالة
+        window.deleteMessage = async (messageId) => {
+            if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
+                showNotification('تم حذف الرسالة');
+                // هنا يمكن إضافة كود الحذف الفعلي
             }
         };
 
-        // إرسال رسالة
-        document.getElementById('sendMessageBtn').onclick = async () => {
+        // الرد على رسالة
+        window.replyToMessage = (messageId) => {
+            document.getElementById('messageInput').placeholder = 'جاري الرد على الرسالة...';
+            document.getElementById('messageInput').focus();
+        };
+
+        // إظهار الإشعارات
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.borderRightColor = type === 'success' ? 'var(--green)' : 'var(--red)';
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}" 
+                       style="color: ${type === 'success' ? 'var(--green)' : 'var(--red)'};"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // تحميل الرسائل عند اختيار قناة
+        document.getElementById('loadMessagesBtn').onclick = () => {
             const channelId = document.getElementById('messageChannelSelect').value;
-            const message = document.getElementById('messageText').value;
-            
-            if (!channelId || !message) {
-                showNotification('الرجاء اختيار القناة وكتابة الرسالة', 'error');
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/message/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ channelId, message })
-                });
-                
-                const result = await response.json();
-                if (result.error) {
-                    showNotification(result.error, 'error');
-                } else {
-                    showNotification('تم إرسال الرسالة بنجاح');
-                    document.getElementById('messageText').value = '';
-                }
-            } catch (error) {
-                showNotification('فشل إرسال الرسالة', 'error');
+            if (channelId) {
+                loadMessages(channelId);
+            } else {
+                showNotification('اختر قناة أولاً', 'error');
             }
         };
 
-        // حفظ الإعدادات
-        document.getElementById('saveSettingsBtn').onclick = () => {
-            showNotification('تم حفظ الإعدادات بنجاح');
+        // مسح الرسائل المعروضة
+        document.getElementById('clearMessagesBtn').onclick = () => {
+            document.getElementById('chatMessages').innerHTML = '';
+            showNotification('تم مسح الرسائل');
         };
+
+        // إرسال الرسالة بالضغط على Enter
+        document.getElementById('messageInput').onkeypress = (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('sendMessageBtn').click();
+            }
+        };
+
+        // تحميل البيانات عند فتح الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserInfo();
+            loadGuilds();
+            
+            // تحديث إحصائيات الرسائل
+            setInterval(() => {
+                if (currentChannelId) {
+                    // تحديث الرسائل
+                }
+            }, 10000);
+        });
     </script>
 </body>
 </html>
