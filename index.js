@@ -1,7 +1,6 @@
 const express = require('express');
 const { Client } = require('discord.js-selfbot-v13');
-const { joinVoiceChannel, createAudioPlayer, AudioPlayerStatus } = require('@discordjs/voice');
-const path = require('path');
+const { joinVoiceChannel, createAudioPlayer } = require('@discordjs/voice');
 const app = express();
 
 // التحقق من وجود التوكن
@@ -11,14 +10,12 @@ if (!token) {
     process.exit(1);
 }
 
-// إنشاء عميل السيلف بوت مع إعدادات متوافقة
+// إنشاء عميل السيلف بوت مع إعدادات مبسطة
 const client = new Client({
     checkUpdate: false,
     ws: {
         properties: {
-            $browser: "Discord iOS",
-            $os: "iOS",
-            $device: "iPhone"
+            $browser: "Discord iOS"
         }
     }
 });
@@ -91,7 +88,9 @@ app.post('/api/voice/join', async (req, res) => {
         
         // إذا كان متصل بقناة أخرى، افصل أولاً
         if (voiceConnection) {
-            voiceConnection.destroy();
+            try {
+                voiceConnection.destroy();
+            } catch (e) {}
             voiceConnection = null;
         }
         
@@ -101,8 +100,7 @@ app.post('/api/voice/join', async (req, res) => {
             guildId: guild.id,
             adapterCreator: guild.voiceAdapterCreator,
             selfDeaf: false,
-            selfMute: false,
-            group: client.user.id
+            selfMute: false
         });
         
         currentVoiceChannel = channel.id;
@@ -120,7 +118,7 @@ app.post('/api/voice/join', async (req, res) => {
         
     } catch (error) {
         console.error('خطأ في الاتصال الصوتي:', error);
-        res.status(500).json({ error: 'فشل الاتصال بالقناة الصوتية: ' + error.message });
+        res.status(500).json({ error: 'فشل الاتصال بالقناة الصوتية' });
     }
 });
 
@@ -155,18 +153,12 @@ app.post('/api/status', async (req, res) => {
     const { status, activity, activityType } = req.body;
     
     try {
-        let presenceData = {};
-        
-        if (activity) {
-            presenceData.activities = [{
-                name: activity,
-                type: parseInt(activityType) || 0
-            }];
-        }
-        
         await client.user.setPresence({
             status: status || 'online',
-            activities: presenceData.activities || []
+            activities: activity ? [{
+                name: activity,
+                type: parseInt(activityType) || 0
+            }] : []
         });
         
         res.json({ success: true, message: '✅ تم تحديث الحالة' });
@@ -199,7 +191,7 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'ok', 
         bot: client.user ? 'connected' : 'disconnected',
-        timestamp: new Date().toISOString()
+        uptime: process.uptime()
     });
 });
 
