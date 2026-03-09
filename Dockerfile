@@ -12,7 +12,10 @@ RUN apt-get update && apt-get install -y \
 
 # نسخ ملفات المشروع
 COPY package*.json ./
-RUN npm install
+
+# تنظيف الكاش وتثبيت الحزم
+RUN npm cache clean --force && \
+    npm install --legacy-peer-deps
 
 COPY . .
 
